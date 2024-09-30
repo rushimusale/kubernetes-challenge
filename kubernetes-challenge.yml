@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: npm-config
+data:
+  NAME: "Rushikesh_Musale"
+---
+apiVersion: v1
+kind: Pod
+metadata:
+    labels:
+        tier: test
+    name: kube-npm
+spec:
+    containers:
+        - image: rushimusle/rushimusale:npm
+          name: npm-image
+          envFrom:
+           - configMapRef:
+                name: npm-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: kube-npm-svc
+spec:
+    selector:
+       tier: test
+    ports:
+     -  port: 4000
+        targetPort: 4000
+        protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+    name: npm-ingress
+    annotations:
+        nginx.ingress.kubernates.io/rewrite-target : /
+spec:
+    ingressClassName: nginx
+    rules:
+    - http:
+        paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+                name: kube-npm-svc
+                port:
+                    number: 4000
